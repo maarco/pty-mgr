@@ -1,0 +1,41 @@
+{
+  "name": "pty-mgr",
+  "version": "1.0.0",
+  "description": "PTY session manager with terminal emulation. Replaces tmux for programmatic session control.",
+  "type": "module",
+  "main": "lib/pty-manager.mjs",
+  "exports": {
+    ".": {
+      "import": "./lib/pty-manager.mjs"
+    }
+  },
+  "bin": {
+    "pty-mgr": "bin/pty-mgr",
+    "p": "bin/pty-mgr"
+  },
+  "scripts": {
+    "demo": "node bin/pty-mgr demo",
+    "build": "bun build bin/pty-mgr.mjs --compile --outfile dist/pty-mgr"
+  },
+  "dependencies": {
+    "@xterm/headless": "^6.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "bin/",
+    "lib/",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "pty",
+    "terminal",
+    "session",
+    "tmux",
+    "agent",
+    "orchestration"
+  ],
+  "license": "MIT"
+}
