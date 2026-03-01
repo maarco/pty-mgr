@@ -67,9 +67,11 @@ main() {
   echo "commands:  pty-mgr, p"
   echo ""
 
-  # check if PATH is active
+  # check if PATH is active in current shell
   case ":$PATH:" in
-    *":${INSTALL_DIR}:"*) ;;
+    *":${INSTALL_DIR}:"*)
+      echo "PATH is set."
+      ;;
     *)
       echo "restart your shell or run:"
       echo "  export PATH=\"${INSTALL_DIR}:\$PATH\""
@@ -77,11 +79,9 @@ main() {
       ;;
   esac
 
-  echo "get started:"
-  echo "  p daemon"
-  echo "  p spawn my-agent bash"
-  echo "  p send my-agent \"echo hello\""
-  echo "  p capture my-agent"
+  echo "to wrap CLI tools (claude, codex, etc.) in managed sessions:"
+  echo "  pty-mgr setup"
+  echo ""
 }
 
 add_to_path() {

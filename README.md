@@ -90,38 +90,17 @@ p stop
 | st    | status  | cfg   | config  |
 | i     | info    | x     | stop    |
 
-## Example: Managed Claude Sessions
+## Managed CLI Sessions
 
-Add this to your `~/.bashrc` or `~/.zshrc` to wrap every `claude` invocation
-in a managed PTY session, named after your current directory:
+Wrap any CLI tool (claude, codex, gemini, etc.) in managed PTY sessions.
+Run the interactive setup:
 
-```bash
-claude() {
-  # ensure daemon is running
-  p status >/dev/null 2>&1 || p daemon
-
-  # base name from current directory
-  local base
-  base=$(basename "$PWD" | tr ' .' '-')
-
-  # find next available session number
-  local n=1
-  while p alive "${base}-${n}" 2>/dev/null | grep -q alive; do
-    n=$((n + 1))
-  done
-
-  local name="${base}-${n}"
-
-  # spawn claude in a pty session, pass through any args
-  p spawn "$name" claude "$@"
-
-  # attach -- claude runs like normal
-  # ctrl-] to detach (session keeps running in background)
-  p attach "$name"
-}
+```
+pty-mgr setup
 ```
 
-Now just type `claude` like normal. What you get:
+It asks which commands to wrap, then adds shell functions to your rc file.
+After that, just type `claude` like normal. What you get:
 
 - Claude runs inside a managed PTY session named `<folder>-1`
 - If you open another claude in the same folder, it gets `<folder>-2`
