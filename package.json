@@ -14,14 +14,14 @@
     "p": "bin/pty-mgr"
   },
   "scripts": {
-    "demo": "node bin/pty-mgr demo",
+    "demo": "bun bin/pty-mgr demo",
     "build": "bun build bin/pty-mgr.mjs --compile --outfile dist/pty-mgr"
   },
   "dependencies": {
     "@xterm/headless": "^6.0.0"
   },
   "engines": {
-    "node": ">=18"
+    "bun": ">=1.0"
   },
   "files": [
     "bin/",
@@ -33,7 +33,6 @@
     "pty",
     "terminal",
     "session",
-
     "agent",
     "orchestration"
   ],

@@ -3,29 +3,24 @@
 PTY session manager with terminal emulation for programmatic session control.
 
 Spawn commands in real pseudo-terminals, capture rendered screen output (not raw
-bytes), and manage sessions through a persistent daemon -- all without native
-Node.js addons.
+bytes), and manage sessions through a persistent daemon. Single binary, no
+external dependencies.
 
 ## How It Works
 
-Two layers:
+`Bun.spawn({ terminal })` allocates a native PTY for each session. An
+`@xterm/headless` terminal emulator parses escape codes, cursor movements, and
+screen redraws so `capture()` returns exactly what you'd see on screen.
 
-1. **pty-bridge.py** -- Python script (stdlib only) that allocates a real PTY
-   via `pty.openpty()`, forks the child process, and bridges stdin/stdout. Child
-   processes see a real terminal (`isatty() = True`).
-
-2. **pty-manager.mjs** -- Node.js module that wraps each bridge process with an
-   `@xterm/headless` terminal emulator. The emulator parses escape codes, cursor
-   movements, and screen redraws so `capture()` returns exactly what you'd see
-   on screen.
+Compiles to a single self-contained binary via `bun build --compile`.
 
 ## Install
 
 ```
-npm install pty-mgr
+bun install pty-mgr
 ```
 
-Requires `python3` on PATH (uses only stdlib, no pip packages).
+Requires [Bun](https://bun.sh) runtime.
 
 ## Quick Start
 
@@ -122,7 +117,7 @@ Formats: `jsonl` (timestamped events), `raw` (PTY bytes), `rendered` (screen sna
 ## Build
 
 ```
-npm run build    # compiles to dist/pty-mgr via bun
+bun run build    # compiles to dist/pty-mgr (single binary, ~60MB)
 ```
 
 ## License

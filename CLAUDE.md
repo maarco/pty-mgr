@@ -8,27 +8,27 @@ pty-mgr is a PTY session manager for programmatic terminal control. It spawns
 commands in real pseudo-terminals, emulates the screen buffer with xterm, and
 exposes session management via a daemon over Unix sockets.
 
-Two-layer architecture:
-- `lib/pty-bridge.py` - Python script that allocates a real PTY via `pty.openpty()`,
-  forks the child process, and bridges stdin/stdout. Zero native deps, just stdlib.
-  Reports child PID on stderr as `PID:<n>`, exit code as `EXIT:<n>`.
-- `lib/pty-manager.mjs` - Node.js module (~1400 lines, single file). Contains:
-  - `PtySession` class: wraps a bridge process + `@xterm/headless` Terminal.
-    Feeds PTY output into xterm so `capture()` returns rendered screen state
-    (escape codes resolved, cursor movements applied).
-  - `PtyManager` class: session registry. spawn/sendKeys/capture/kill/waitFor/waitForExit.
-    Exported for library use: `import { PtyManager } from 'pty-mgr'`
-  - Daemon: Unix socket server (JSON-over-newline protocol). Holds sessions persistently.
-    Socket at `~/.pty-manager/<name>.sock`. Supports `attach` (raw streaming mode).
-  - CLI: full command parser with aliases. Entry point `bin/pty-mgr` (also `p`).
+Single-file architecture in `lib/pty-manager.mjs` (~1400 lines). Contains:
+- `PtySession` class: wraps a `Bun.spawn({ terminal })` process + `@xterm/headless`
+  Terminal. Bun's native PTY allocates the pseudo-terminal directly (no Python, no
+  native addons). The xterm emulator parses escape codes so `capture()` returns
+  rendered screen state.
+- `PtyManager` class: session registry. spawn/sendKeys/capture/kill/waitFor/waitForExit.
+  Exported for library use: `import { PtyManager } from 'pty-mgr'`
+- Daemon: Unix socket server (JSON-over-newline protocol). Holds sessions persistently.
+  Socket at `~/.pty-manager/<name>.sock`. Supports `attach` (raw streaming mode).
+- CLI: full command parser with aliases. Entry point `bin/pty-mgr` (also `p`).
+
+Requires Bun runtime (not Node.js). Compiles to a single self-contained binary
+via `bun build --compile`.
 
 ## Commands
 
 ```
-npm install                          # install deps (@xterm/headless)
-node bin/pty-mgr demo                # self-test, no daemon needed
-npm run demo                         # same
-npm run build                        # bun compile to dist/pty-mgr
+bun install                          # install deps (@xterm/headless)
+bun bin/pty-mgr.mjs demo             # self-test, no daemon needed
+bun run demo                         # same
+bun run build                        # compile to dist/pty-mgr (single binary)
 ```
 
 No test framework is set up. The `demo` command is the current smoke test.
@@ -52,9 +52,9 @@ a=attach, st=status, r/rm=remove, d=daemon, cfg=config, x=stop
 
 ## Key Design Decisions
 
-- Single .mjs file for the entire Node side. No build step for dev, just run it.
-- Python bridge instead of node-pty: avoids native addon compilation entirely.
-  Requires python3 on PATH. Bridge path resolved via `findBridge()` or `PTY_BRIDGE` env.
+- Single .mjs file for all logic. No build step for dev, just `bun run`.
+- Bun's native PTY via `Bun.spawn({ terminal })`: no Python, no native addons,
+  no external dependencies beyond `@xterm/headless`. Compiles to one binary.
 - `@xterm/headless` does terminal emulation so capture() returns what you'd see on
   screen, not raw bytes. Scrollback default 5000 lines.
 - Daemon uses newline-delimited JSON over Unix socket. `attach` command switches
