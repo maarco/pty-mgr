@@ -1,7 +1,7 @@
 {
   "name": "pty-mgr",
   "version": "1.0.0",
-  "description": "PTY session manager with terminal emulation. Replaces tmux for programmatic session control.",
+  "description": "PTY session manager with terminal emulation for programmatic session control.",
   "type": "module",
   "main": "lib/pty-manager.mjs",
   "exports": {
@@ -33,7 +33,7 @@
     "pty",
     "terminal",
     "session",
-    "tmux",
+
     "agent",
     "orchestration"
   ],

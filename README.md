@@ -1,0 +1,130 @@
+# pty-mgr
+
+PTY session manager with terminal emulation for programmatic session control.
+
+Spawn commands in real pseudo-terminals, capture rendered screen output (not raw
+bytes), and manage sessions through a persistent daemon -- all without native
+Node.js addons.
+
+## How It Works
+
+Two layers:
+
+1. **pty-bridge.py** -- Python script (stdlib only) that allocates a real PTY
+   via `pty.openpty()`, forks the child process, and bridges stdin/stdout. Child
+   processes see a real terminal (`isatty() = True`).
+
+2. **pty-manager.mjs** -- Node.js module that wraps each bridge process with an
+   `@xterm/headless` terminal emulator. The emulator parses escape codes, cursor
+   movements, and screen redraws so `capture()` returns exactly what you'd see
+   on screen.
+
+## Install
+
+```
+npm install pty-mgr
+```
+
+Requires `python3` on PATH (uses only stdlib, no pip packages).
+
+## Quick Start
+
+### As a library
+
+```js
+import { PtyManager } from 'pty-mgr';
+
+const mgr = new PtyManager();
+mgr.spawn('my-session', 'zsh', [], { cols: 120, rows: 30 });
+mgr.sendKeys('my-session', 'echo hello\r');
+
+// wait for output, then capture rendered screen
+setTimeout(() => {
+  console.log(mgr.capture('my-session', 5));
+  mgr.kill('my-session');
+}, 1000);
+```
+
+### As a CLI
+
+```
+# start the daemon (forks to background)
+p daemon
+
+# named daemon for isolated environments
+p daemon @myproject
+
+# spawn a session
+p spawn agent-1 claude --print
+
+# send keystrokes
+p send agent-1 "fix the login bug"
+
+# capture rendered screen (last 20 lines)
+p capture agent-1 20
+
+# attach interactively (ctrl-] to detach)
+p attach agent-1
+
+# bulk operations with globs
+p capture all 50
+p kill refa*
+
+# stop daemon
+p stop
+```
+
+### CLI Aliases
+
+| Short | Full    | Short | Full    |
+|-------|---------|-------|---------|
+| n/new | spawn   | k     | kill    |
+| s     | send    | l/ls  | list    |
+| c/cap | capture | r/rm  | remove  |
+| a     | attach  | d     | daemon  |
+| st    | status  | cfg   | config  |
+| i     | info    | x     | stop    |
+
+## Daemon Protocol
+
+The daemon listens on a Unix socket at `~/.pty-manager/<name>.sock`.
+Communication is newline-delimited JSON:
+
+```json
+{"cmd": "spawn", "name": "agent-1", "args": {"cmd": "zsh"}}
+{"cmd": "send", "name": "agent-1", "args": {"text": "echo hi\r"}}
+{"cmd": "capture", "name": "agent-1", "args": {"lines": 20}}
+{"cmd": "list"}
+{"cmd": "kill", "name": "agent-1"}
+{"cmd": "shutdown"}
+```
+
+The `attach` command switches the connection to raw streaming mode for
+interactive use.
+
+## Configuration
+
+```
+p config screen 120x40       # default terminal size for new sessions
+p config cap-on-send on      # return capture with every send command
+```
+
+## Logging
+
+```
+p spawn agent-1 --log claude   # spawn with auto-logging (jsonl)
+p log agent-1 on jsonl         # start logging an existing session
+p log agent-1 off              # stop logging
+```
+
+Formats: `jsonl` (timestamped events), `raw` (PTY bytes), `rendered` (screen snapshots).
+
+## Build
+
+```
+npm run build    # compiles to dist/pty-mgr via bun
+```
+
+## License
+
+MIT
