@@ -36,5 +36,9 @@
     "agent",
     "orchestration"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/maarco/pty-mgr.git"
+  },
   "license": "MIT"
 }

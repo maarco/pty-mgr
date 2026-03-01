@@ -16,8 +16,18 @@ Compiles to a single self-contained binary via `bun build --compile`.
 
 ## Install
 
+### Binary (no dependencies)
+
 ```
-bun install pty-mgr
+curl -fsSL https://raw.githubusercontent.com/maarco/pty-mgr/main/install.sh | sh
+```
+
+Installs to `~/.pty-mgr/bin/` and adds to PATH. Works on Linux and macOS (x64, arm64).
+
+### Bun package (for library use)
+
+```
+bun add pty-mgr
 ```
 
 Requires [Bun](https://bun.sh) runtime.
