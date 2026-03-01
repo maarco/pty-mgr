@@ -90,20 +90,57 @@ p stop
 | st    | status  | cfg   | config  |
 | i     | info    | x     | stop    |
 
-## Example: Orchestrating Claude
+## Example: Managed Claude Sessions
 
-Spawn Claude inside a managed PTY and control it programmatically.
-
-### CLI
+Add this to your `~/.bashrc` or `~/.zshrc` to wrap every `claude` invocation
+in a managed PTY session, named after your current directory:
 
 ```bash
-p daemon
-p spawn claude-1 claude
-p send claude-1 "fix the login bug in src/auth.ts"
-sleep 5
-p capture claude-1 50       # see what Claude is doing
-p attach claude-1            # jump in interactively (ctrl-] to detach)
-p kill claude-1
+claude() {
+  # ensure daemon is running
+  p status >/dev/null 2>&1 || p daemon
+
+  # base name from current directory
+  local base
+  base=$(basename "$PWD" | tr ' .' '-')
+
+  # find next available session number
+  local n=1
+  while p alive "${base}-${n}" 2>/dev/null | grep -q alive; do
+    n=$((n + 1))
+  done
+
+  local name="${base}-${n}"
+
+  # spawn claude in a pty session, pass through any args
+  p spawn "$name" claude "$@"
+
+  # attach -- claude runs like normal
+  # ctrl-] to detach (session keeps running in background)
+  p attach "$name"
+}
+```
+
+Now just type `claude` like normal. What you get:
+
+- Claude runs inside a managed PTY session named `<folder>-1`
+- If you open another claude in the same folder, it gets `<folder>-2`
+- `ctrl-]` to detach -- Claude keeps running in the background
+- `p attach <name>` to jump back in
+- `p capture <name> 50` to check on it from another terminal
+- `p list` to see all your Claude sessions across all projects
+
+```
+$ cd ~/dev/my-app
+$ claude                     # spawns as my-app-1, attaches
+  ctrl-]                     # detach
+$ claude                     # spawns as my-app-2
+  ctrl-]
+$ p list
+my-app-1  pid=1234  120x40  alive  claude
+my-app-2  pid=1235  120x40  alive  claude
+$ p capture my-app-1 20      # peek at what agent 1 is doing
+$ p attach my-app-1          # jump back into agent 1
 ```
 
 ### Programmatic (parallel agents)
