@@ -90,6 +90,48 @@ p stop
 | st    | status  | cfg   | config  |
 | i     | info    | x     | stop    |
 
+## Example: Orchestrating Claude
+
+Spawn Claude inside a managed PTY and control it programmatically.
+
+### CLI
+
+```bash
+p daemon
+p spawn claude-1 claude
+p send claude-1 "fix the login bug in src/auth.ts"
+sleep 5
+p capture claude-1 50       # see what Claude is doing
+p attach claude-1            # jump in interactively (ctrl-] to detach)
+p kill claude-1
+```
+
+### Programmatic (parallel agents)
+
+```js
+import { PtyManager } from 'pty-mgr';
+
+const mgr = new PtyManager();
+
+// launch 3 Claude agents in parallel
+const agents = ['auth-fix', 'api-tests', 'docs-update'];
+for (const name of agents) {
+  mgr.spawn(name, 'claude', ['--print'], { cols: 120, rows: 40 });
+}
+
+mgr.sendKeys('auth-fix', 'fix the login bug in src/auth.ts\r');
+mgr.sendKeys('api-tests', 'write tests for the /users endpoint\r');
+mgr.sendKeys('docs-update', 'update the API docs in README.md\r');
+
+// poll until all agents finish
+for (const name of agents) {
+  await mgr.waitFor(name, /[✔✓]|completed|done/i, 120000);
+  console.log(`${name} done:\n${mgr.capture(name, 10)}\n`);
+}
+
+mgr.destroyAll();
+```
+
 ## Daemon Protocol
 
 The daemon listens on a Unix socket at `~/.pty-manager/<name>.sock`.
