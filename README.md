@@ -43,10 +43,13 @@ const mgr = new PtyManager();
 mgr.spawn('my-session', 'zsh', [], { cols: 120, rows: 30 });
 mgr.sendKeys('my-session', 'echo hello\r');
 
+// rename a running session
+mgr.rename('my-session', 'my-session-renamed');
+
 // wait for output, then capture rendered screen
 setTimeout(() => {
-  console.log(mgr.capture('my-session', 5));
-  mgr.kill('my-session');
+  console.log(mgr.capture('my-session-renamed', 5));
+  mgr.kill('my-session-renamed');
 }, 1000);
 ```
 
@@ -71,6 +74,9 @@ p capture agent-1 20
 # attach interactively (ctrl-] to detach)
 p attach agent-1
 
+# rename a session
+p rename agent-1 agent-refactored
+
 # bulk operations with globs
 p capture all 50
 p kill refa*
@@ -83,12 +89,13 @@ p stop
 
 | Short | Full    | Short | Full    |
 |-------|---------|-------|---------|
-| n/new | spawn   | k     | kill    |
-| s     | send    | l/ls  | list    |
-| c/cap | capture | r/rm  | remove  |
-| a     | attach  | d     | daemon  |
-| st    | status  | cfg   | config  |
-| i     | info    | x     | stop    |
+| n/new  | spawn   | k       | kill    |
+| s      | send    | l/ls    | list    |
+| c/cap  | capture | r/rm    | remove  |
+| a      | attach  | mv/ren  | rename  |
+| st     | status  | d       | daemon  |
+| i      | info    | cfg     | config  |
+|        |         | x       | stop    |
 
 ## Managed CLI Sessions
 
@@ -159,6 +166,7 @@ Communication is newline-delimited JSON:
 {"cmd": "capture", "name": "agent-1", "args": {"lines": 20}}
 {"cmd": "list"}
 {"cmd": "kill", "name": "agent-1"}
+{"cmd": "rename", "name": "agent-1", "args": {"newName": "agent-refactored"}}
 {"cmd": "shutdown"}
 ```
 
