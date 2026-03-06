@@ -1,6 +1,6 @@
 {
   "name": "pty-mgr",
-  "version": "1.0.0",
+  "version": "1.1.2",
   "description": "PTY session manager with terminal emulation for programmatic session control.",
   "type": "module",
   "main": "lib/pty-manager.mjs",
