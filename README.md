@@ -63,6 +63,10 @@ p daemon
 p daemon @myproject
 
 # spawn a session
+# auto-incrementing session named after current directory
+p wrap                    # spawns as pty-mgr-1
+p wrap                    # spawns as pty-mgr-2
+p wrap                    # spawns as pty-mgr-3
 p spawn agent-1 claude --print
 
 # send keystrokes
@@ -89,13 +93,13 @@ p stop
 
 | Short | Full    | Short | Full    |
 |-------|---------|-------|---------|
-| n/new  | spawn   | k       | kill    |
-| s      | send    | l/ls    | list    |
-| c/cap  | capture | r/rm    | remove  |
-| a      | attach  | mv/ren  | rename  |
-| st     | status  | d       | daemon  |
-| i      | info    | cfg     | config  |
-|        |         | x       | stop    |
+| n/new  | spawn   | w/wrap  | wrap    |
+| s      | send    | k       | kill    |
+| c/cap  | capture | l/ls    | list    |
+| a      | attach  | r/rm    | remove  |
+| st     | status  | mv/ren  | rename  |
+| i      | info    | d       | daemon  |
+| cfg    | config  | x       | stop    |
 
 ## Managed CLI Sessions
 
@@ -162,6 +166,7 @@ Communication is newline-delimited JSON:
 
 ```json
 {"cmd": "spawn", "name": "agent-1", "args": {"cmd": "zsh"}}
+{"cmd": "wrap", "args": {"cmd": "zsh", "cwd": "/Users/you/dev/myproject"}}
 {"cmd": "send", "name": "agent-1", "args": {"text": "echo hi\r"}}
 {"cmd": "capture", "name": "agent-1", "args": {"lines": 20}}
 {"cmd": "list"}
